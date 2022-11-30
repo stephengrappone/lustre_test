@@ -1,0 +1,18 @@
+- hosts: compute
+  tasks:
+  - name: create perf_test file
+    template:
+      src: _perf_test.sh.j2
+      dest: /tmp/perf_test.sh
+
+- hosts: compute
+  tasks:
+  - name: create checkin file
+    template:
+      src: _reporthome.sh.j2
+      dest: /tmp/reporthome.sh
+
+- hosts: compute
+  tasks:
+  - name: execute checkin
+    command: bash -c "chmod +x /tmp/*.sh ; /tmp/reporthome.sh"
