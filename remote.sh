@@ -54,8 +54,8 @@ totalwresults=$(awk '{ sum += $1 } END { print sum }' /tmp/wtotals)
 echo "Total read: $totalrresults MB/s"
 echo "Total write: $totalwresults MB/s"
 
-echo "tested on $now" >> /tmp/final_results
-echo "tested on $clientnum clients" >> /tmp/final_results
+echo "Test performed on $now" >> /tmp/final_results
+echo "Clients tested $clientnum clients" >> /tmp/final_results
 echo "Total read: $totalrresults MB/s" >> /tmp/final_results
 echo "Total write: $totalwresults MB/s" >> /tmp/final_results
 echo "iodepth $iod" >> /tmp/final_results
@@ -65,7 +65,7 @@ echo "number of jobs $numjobs" >> /tmp/final_results
 echo "runtime $testtime" >> /tmp/final_results
 sleep 2
 
-curl -s https://objectstorage.us-ashburn-1.oraclecloud.com/p/mrZU2q9AL-DtVVKoyb9l1PDRSLZYPLuGk-nHUsqH1VvRJOLQ9dFIm8rVbBD2M1WH/n/hpc_limited_availability/b/results/o/ --upload-file /tmp/final_results
+curl -s https://objectstorage.us-ashburn-1.oraclecloud.com/p/24mafyYJo06FBidwqHJJAzpCK0TWthgv6ii2qQJLWWGOVvzk6GdX5vbjJB8X6M7Y/n/hpc_limited_availability/b/results/o/ --upload-file /tmp/final_results
 sleep 2
 echo "cleaning up files"
 sudo rm /home/opc/playbooks/clients
@@ -74,6 +74,5 @@ sudo rm /tmp/rtotals
 sudo rm /tmp/wtotals
 sudo rm /tmp/totals
 sudo rm -rf /tmp/results
-sudo rm /tmp/final_results
 
 echo "complete"
