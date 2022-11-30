@@ -1,0 +1,30 @@
+#!/bin/bash
+
+ocpu=$(lscpu | grep Core | grep socket | awk '{print$4}')
+region=$(curl -s -L http://169.254.169.254/opc/v1/instance | grep regionIdentifier | awk '{print$2}' | sed s/[^[:alnum:]+._-]//g)
+cloud=$(curl -s -L http://169.254.169.254/opc/v1/instance | grep "realmDomainComponent" | awk '{print$2}' | sed s/[^[:alnum:]+._-]//g)
+shape=$(curl -s -L http://169.254.169.254/opc/v1/instance | grep "shape" | awk '{print$2}' | sed s/[^[:alnum:]+._-]//g)
+sudo rpm -qa | grep -qw fio || sudo yum install fio -y
+sudo rpm -qa | grep -qw iperf3 || sudo yum install iperf3 -y
+fio --name=/mnt/fs/$HOSTNAME --ioengine=libaio --iodepth=$1 --rw=write --bs=$2 --direct=1 --size=$3 --numjobs=$4 --runtime=$5 --group_reporting > /tmp/fio_results_write
+sleep 5
+fio --name=/mnt/fs/$HOSTNAME --ioengine=libaio --iodepth=$1 --rw=read --bs=$2 --direct=1 --size=$3 --numjobs=$4 --runtime=$5 --group_reporting > /tmp/fio_results_read
+sleep 5
+readresults=$(tail -1 /tmp/fio_results_read | awk '{print$3}' | sed 's/.$//' | sed 's/^.\(.*\).$/\1/')
+writeresults=$(tail -1 /tmp/fio_results_write | awk '{print$3}'| sed 's/.$//'| sed 's/^.\(.*\).$/\1/')
+echo read $readresults >> /tmp/$HOSTNAME
+echo write $writeresults >> /tmp/$HOSTNAME
+echo "iodepth=$1" >> /tmp/$HOSTNAME
+echo "blocksize=$2" >> /tmp/$HOSTNAME
+echo "size=$3" >> /tmp/$HOSTNAME
+echo "number of jobs $4" >> /tmp/$HOSTNAME
+echo "runtime=$5" >> /tmp/$HOSTNAME
+echo "ocpu $ocpu" >> /tmp/$HOSTNAME
+echo region $region >> /tmp/$HOSTNAME
+echo cloud $cloud >> /tmp/$HOSTNAME
+echo shape $shape >> /tmp/$HOSTNAME
+scp /tmp/$HOSTNAME opc@bastion-1:/tmp/results
+curl -s https://objectstorage.us-ashburn-1.oraclecloud.com/p/mrZU2q9AL-DtVVKoyb9l1PDRSLZYPLuGk-nHUsqH1VvRJOLQ9dFIm8rVbBD2M1WH/n/hpc_limited_availability/b/results/o/ --upload-file /tmp/$HOSTNAME
+rm -rf /tmp/fio_results_read
+rm -rf /tmp/fio_results_write
+rm /tmp/$HOSTNAME
